@@ -1,0 +1,88 @@
+name: Build, Sign & Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build-sign-release:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Apple certificate
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          # Create a temporary keychain
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          KEYCHAIN_PASSWORD=$(openssl rand -hex 12)
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          # Import certificate
+          CERT_PATH=$RUNNER_TEMP/certificate.p12
+          echo -n "$APPLE_CERTIFICATE" | base64 --decode -o "$CERT_PATH"
+          security import "$CERT_PATH" -P "$APPLE_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
+
+          # Verify
+          security find-identity -v "$KEYCHAIN_PATH"
+
+      - name: Build
+        run: |
+          xcodebuild -project "AirPods Sound Quality Fixer.xcodeproj" \
+            -scheme "AirPods Sound Quality Fixer" \
+            -configuration Release \
+            -derivedDataPath build \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="Developer ID Application" \
+            DEVELOPMENT_TEAM=${{ secrets.APPLE_TEAM_ID }} \
+            CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO \
+            OTHER_CODE_SIGN_FLAGS="--options=runtime" \
+            clean build
+
+      - name: Zip app
+        run: |
+          APP_PATH="build/Build/Products/Release/AirPods Sound Quality Fixer.app"
+          ditto -c -k --keepParent "$APP_PATH" "AirPods Sound Quality Fixer.app.zip"
+
+      - name: Notarize
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          xcrun notarytool submit "AirPods Sound Quality Fixer.app.zip" \
+            --apple-id "$APPLE_ID" \
+            --password "$APPLE_PASSWORD" \
+            --team-id "$APPLE_TEAM_ID" \
+            --wait
+
+      - name: Staple
+        run: |
+          # Unzip, staple, re-zip
+          ditto -x -k "AirPods Sound Quality Fixer.app.zip" staging
+          xcrun stapler staple "staging/AirPods Sound Quality Fixer.app"
+          rm "AirPods Sound Quality Fixer.app.zip"
+          ditto -c -k --keepParent "staging/AirPods Sound Quality Fixer.app" "AirPods Sound Quality Fixer.app.zip"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            "AirPods Sound Quality Fixer.app.zip" \
+            --title "AirPods Sound Quality Fixer ${GITHUB_REF_NAME}" \
+            --generate-notes
+
+      - name: Cleanup keychain
+        if: always()
+        run: |
+          security delete-keychain $RUNNER_TEMP/app-signing.keychain-db || true
