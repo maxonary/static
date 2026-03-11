@@ -79,7 +79,19 @@ jobs:
         run: |
           # Unzip, staple, re-zip
           ditto -x -k "AirPods Sound Quality Fixer.app.zip" staging
-          xcrun stapler staple "staging/AirPods Sound Quality Fixer.app"
+          # Retry stapling — ticket may not be available on Apple's CDN immediately
+          for i in 1 2 3 4 5; do
+            if xcrun stapler staple "staging/AirPods Sound Quality Fixer.app"; then
+              echo "Stapling succeeded on attempt $i"
+              break
+            fi
+            if [ $i -eq 5 ]; then
+              echo "Stapling failed after 5 attempts"
+              exit 1
+            fi
+            echo "Stapling attempt $i failed, retrying in 30s..."
+            sleep 30
+          done
           rm "AirPods Sound Quality Fixer.app.zip"
           ditto -c -k --keepParent "staging/AirPods Sound Quality Fixer.app" "AirPods Sound Quality Fixer.app.zip"
 
