@@ -1,0 +1,29 @@
+#!/bin/bash
+#
+# Pre-push hook: when pushing a version tag (v*), verify it matches
+# CFBundleShortVersionString in Info.plist.
+
+PLIST="AirPods Sound Quality Fixer/Info.plist"
+
+while read local_ref local_sha remote_ref remote_sha; do
+    # Only check version tags
+    if [[ "$local_ref" =~ ^refs/tags/v(.+)$ ]]; then
+        tag_version="${BASH_REMATCH[1]}"
+        plist_version=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$PLIST" 2>/dev/null)
+
+        if [ -z "$plist_version" ]; then
+            echo "ERROR: Could not read CFBundleShortVersionString from $PLIST"
+            exit 1
+        fi
+
+        if [ "$tag_version" != "$plist_version" ]; then
+            echo "ERROR: Tag version (v$tag_version) does not match Info.plist version ($plist_version)"
+            echo "Update CFBundleShortVersionString in $PLIST to $tag_version before pushing."
+            exit 1
+        fi
+
+        echo "Version check passed: tag v$tag_version matches Info.plist ($plist_version)"
+    fi
+done
+
+exit 0
