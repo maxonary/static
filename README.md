@@ -7,7 +7,7 @@ If you have more input devices you can select which device you want to force ove
 
 The app runs in the menu bar.
 
-**Compatibility Update: Now fully compatible with macOS Sequoia (15.0) and later, with updated internal APIs for improved stability.**
+**Compatibility: Requires macOS 13.0 (Ventura) or later.**
 
 ## Download & Installation
 
@@ -24,6 +24,22 @@ Once launched, the app will appear as an icon in your macOS menu bar.
 *   **Click the menu bar icon** to see a list of available audio input devices.
 *   **Select a device** from the list to force it as the default audio input. This will ensure your AirPods are used for output only, improving sound quality and battery life.
 *   The "Open at login" option (if selected) will automatically launch the app when your Mac starts up.
+
+## Development
+
+After cloning, set up git hooks:
+
+```
+git config core.hooksPath .githooks
+```
+
+This installs a pre-push hook that verifies version tags (`v*`) match the `CFBundleShortVersionString` in `Info.plist`. To release a new version:
+
+1. Update `CFBundleShortVersionString` in `AirPods Sound Quality Fixer/Info.plist`
+2. Commit and push to main
+3. Tag and push: `git tag v1.2.0 && git push origin v1.2.0`
+
+The CI workflow will build, sign, notarize, and publish a GitHub release automatically.
 
 ## Support & Contributing
 
