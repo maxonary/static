@@ -76,7 +76,7 @@ jobs:
             --wait 2>&1)
           echo "$SUBMIT_OUTPUT"
           SUBMISSION_ID=$(echo "$SUBMIT_OUTPUT" | grep "id:" | head -1 | awk '{print $2}')
-          STATUS=$(echo "$SUBMIT_OUTPUT" | grep "status:" | awk '{print $2}')
+          STATUS=$(echo "$SUBMIT_OUTPUT" | grep "^  status:" | awk '{print $2}')
           if [ "$STATUS" != "Accepted" ]; then
             echo "::error::Notarization failed with status: $STATUS"
             echo "Fetching notarization log..."
