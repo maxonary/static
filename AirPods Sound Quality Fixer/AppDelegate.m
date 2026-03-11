@@ -6,6 +6,7 @@
 @interface AppDelegate ( )
 {
     BOOL paused;
+    BOOL isUpdatingDevices;
     NSMenu* menu;
     NSStatusItem* statusItem;
     AudioDeviceID forcedInputID;
@@ -29,8 +30,11 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
 {
 
     printf( "default input device changed" );
-    // check default input
-    [ ( (__bridge  AppDelegate* ) inClientData ) listDevices ];
+    // check default input on main thread to avoid race conditions
+    AppDelegate* delegate = (__bridge AppDelegate* ) inClientData;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [ delegate listDevices ];
+    });
 
     return 0;
 }
@@ -137,21 +141,16 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
             &forcedInputID
         );
         
-        // show forcing
-
-        [ menu
-            insertItemWithTitle : @"forcing..."
-            action : NULL
-            keyEquivalent : @""
-            atIndex : 2 ];
-
     }
-    
+
 }
 
 
 - ( void ) listDevices
 {
+
+    if ( isUpdatingDevices ) return;
+    isUpdatingDevices = YES;
 
     NSDictionary *bundleInfo = [ [ NSBundle mainBundle] infoDictionary];
     NSString *versionString = [ NSString stringWithFormat : @"Version %@ (build %@)",
@@ -393,6 +392,8 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
     [ menu addItemWithTitle : @"Quit"
            action : @selector(terminate)
            keyEquivalent : @"" ];
+
+    isUpdatingDevices = NO;
 
 }
 
