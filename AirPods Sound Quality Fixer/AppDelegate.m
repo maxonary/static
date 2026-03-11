@@ -50,7 +50,6 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
     if (readenId == 0) {
         readenId = UINT32_MAX;
         [prefs setInteger:readenId forKey: @"Device"];
-        [prefs synchronize];
     }
     
     forcedInputID = (UInt32)readenId; // Explicit cast to UInt32
@@ -100,8 +99,6 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
         size,
         &runLoop);
     
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appBecameActive:) name:NSApplicationDidBecomeActiveNotification object:nil];
-    
      [ self listDevices ];
     
 }
@@ -123,7 +120,6 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
         
         NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
         [prefs setInteger:newId forKey: @"Device"];
-        [prefs synchronize];
         NSLog(@"Saved device from UserDefaults: %d", forcedInputID);
 
         // NEW: Use AudioObjectSetPropertyData instead of AudioHardwareSetProperty
@@ -359,22 +355,6 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
 
     NSLog(@"default input device is %u", deviceID);
 
-    // Read transport type of current default input to know if it's built-in
-    UInt32 currentTransport = 0;
-    UInt32 currentTransportSize = sizeof(currentTransport);
-    AudioObjectPropertyAddress currentTransportAddress = {
-        kAudioDevicePropertyTransportType,
-        kAudioObjectPropertyScopeGlobal,
-        kAudioObjectPropertyElementMain
-    };
-    AudioObjectGetPropertyData(deviceID,
-                               &currentTransportAddress,
-                               0,
-                               NULL,
-                               &currentTransportSize,
-                               &currentTransport);
-    BOOL defaultIsBuiltIn = (currentTransport == kAudioDeviceTransportTypeBuiltIn);
-
     if ( !paused && forcedInputID != UINT32_MAX && deviceID != forcedInputID )
     {
 
@@ -453,7 +433,6 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
 {
     [statusItem setVisible:false];
     [defaults setBool:YES forKey:@"StatusIconHidden"];
-    [defaults synchronize];
 }
 
 - (void)toggleStartupItem
@@ -489,15 +468,7 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
     // If the app is invoked again while running, show the status icon
     [statusItem setVisible:true];
     [defaults setBool:NO forKey:@"StatusIconHidden"];
-    [defaults synchronize];
     return YES;
-}
-
-- (void)appBecameActive:(NSNotification *)note
-{
-    [statusItem setVisible:true];
-    [defaults setBool:NO forKey:@"StatusIconHidden"];
-    [defaults synchronize];
 }
 
 @end

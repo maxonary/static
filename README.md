@@ -11,7 +11,7 @@ The app now detects the built-in microphone using CoreAudio's transport type pro
 
 ## Tray icon visibility persistence
 
-The app remembers whether the menu bar icon was previously hidden and restores that state on the next launch. Additionally, if you launch the app while it is already running, it will automatically make the menu bar icon visible again to ensure accessibility.
+The app remembers whether the menu bar icon was previously hidden and restores that state on the next launch. To restore a hidden icon, simply launch the app again.
 
 **Compatibility Update: Now fully compatible with macOS Sequoia (15.0) and later, with updated internal APIs for improved stability.**
 
