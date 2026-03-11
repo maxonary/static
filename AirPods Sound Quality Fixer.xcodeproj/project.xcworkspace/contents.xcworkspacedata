@@ -2,6 +2,10 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "self:/Users/milgra/Desktop/AirPods Audio Quality Fixer/AirPods Sound Quality Fixer.xcodeproj">
+      location = "self:">
    </FileRef>
+   <Group
+      location = "group:Configs"
+      name = "Configs">
+   </Group>
 </Workspace>

@@ -50,7 +50,6 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
     if (readenId == 0) {
         readenId = UINT32_MAX;
         [prefs setInteger:readenId forKey: @"Device"];
-        [prefs synchronize];
     }
     
     forcedInputID = (UInt32)readenId; // Explicit cast to UInt32
@@ -63,6 +62,10 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
     statusItem = [ [ NSStatusBar systemStatusBar ] statusItemWithLength : NSVariableStatusItemLength ];
     statusItem.button.toolTip = @"AirPods Audio Quality & Battery Life Fixer"; // NEW: Use button.toolTip
     statusItem.button.image = image; // NEW: Use button.image
+
+    // Restore status icon visibility
+    BOOL shouldHideIcon = [defaults boolForKey:@"StatusIconHidden"];
+    [statusItem setVisible:!shouldHideIcon];
 
     // add listener for detecting when input device is changed
 
@@ -117,7 +120,6 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
         
         NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
         [prefs setInteger:newId forKey: @"Device"];
-        [prefs synchronize];
         NSLog(@"Saved device from UserDefaults: %d", forcedInputID);
 
         // NEW: Use AudioObjectSetPropertyData instead of AudioHardwareSetProperty
@@ -287,15 +289,25 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
             
             NSString* nameStr = [ NSString stringWithUTF8String : deviceName ];
 
-            if ( [ [ nameStr lowercaseString ] containsString : @"built" ] && forcedInputID == UINT32_MAX )
-            {
-
-                // if there is no forced device yet, select "built-in" by default
-
-                NSLog( @"setting forced device : %s  %u\n" , deviceName , (unsigned int)oneDeviceID );
-
-                forcedInputID = oneDeviceID;
-                
+            // Determine built-in by transport type instead of localized name
+            UInt32 transportType = 0;
+            UInt32 transportSize = sizeof(transportType);
+            AudioObjectPropertyAddress transportAddress = {
+                kAudioDevicePropertyTransportType,
+                kAudioObjectPropertyScopeGlobal,
+                kAudioObjectPropertyElementMain
+            };
+            if (AudioObjectGetPropertyData(oneDeviceID,
+                                           &transportAddress,
+                                           0,
+                                           NULL,
+                                           &transportSize,
+                                           &transportType) == noErr) {
+                if (transportType == kAudioDeviceTransportTypeBuiltIn && forcedInputID == UINT32_MAX) {
+                    // if there is no forced device yet, select built-in by default
+                    NSLog(@"setting forced device (built-in by transport): %s  %u\n", deviceName, (unsigned int)oneDeviceID);
+                    forcedInputID = oneDeviceID;
+                }
             }
 
             NSMenuItem* item = [ menu
@@ -341,8 +353,8 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
         &deviceID
     );
 
-    NSLog( @"default input device is %u" , deviceID );
-    
+    NSLog(@"default input device is %u", deviceID);
+
     if ( !paused && forcedInputID != UINT32_MAX && deviceID != forcedInputID )
     {
 
@@ -420,6 +432,7 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
 - ( void ) hide
 {
     [statusItem setVisible:false];
+    [defaults setBool:YES forKey:@"StatusIconHidden"];
 }
 
 - (void)toggleStartupItem
@@ -450,4 +463,13 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
     [self updateStartupItemState];
 }
 
+- (BOOL)applicationShouldHandleReopen:(NSApplication *)theApplication hasVisibleWindows:(BOOL)flag
+{
+    // If the app is invoked again while running, show the status icon
+    [statusItem setVisible:true];
+    [defaults setBool:NO forKey:@"StatusIconHidden"];
+    return YES;
+}
+
 @end
+

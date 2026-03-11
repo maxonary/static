@@ -5,7 +5,13 @@ It forces the default audio input to be the built-in microphone instead of AirPo
 It also increases battery life because AirPods doesn't have to broadcast sound back.
 If you have more input devices you can select which device you want to force over the AirPods microphone.
 
-The app runs in the menu bar.
+## Locale-independent built-in mic detection
+
+The app now detects the built-in microphone using CoreAudio's transport type property (`kAudioDevicePropertyTransportType == kAudioDeviceTransportTypeBuiltIn`) instead of relying on localized device name substrings. This makes detection reliable and consistent across all locales.
+
+## Tray icon visibility persistence
+
+The app remembers whether the menu bar icon was previously hidden and restores that state on the next launch. To restore a hidden icon, simply launch the app again.
 
 **Compatibility: Requires macOS 13.0 (Ventura) or later.**
 
