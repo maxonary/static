@@ -491,10 +491,5 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
     return YES;
 }
 
-- (void)showStatusIcon:(NSNotification *)notification {
-    [statusItem setVisible:YES];
-    [defaults setBool:NO forKey:@"StatusIconHidden"];
-}
-
 @end
 
