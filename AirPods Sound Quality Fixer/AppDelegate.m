@@ -67,6 +67,13 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
     BOOL shouldHideIcon = [defaults boolForKey:@"StatusIconHidden"];
     [statusItem setVisible:!shouldHideIcon];
 
+    // Listen for show-icon requests from second-launch instances
+    [[NSDistributedNotificationCenter defaultCenter]
+        addObserver:self
+        selector:@selector(showStatusIcon:)
+        name:@"com.airpods-fixer.showIcon"
+        object:nil];
+
     // add listener for detecting when input device is changed
 
     AudioObjectPropertyAddress inputDeviceAddress = {
@@ -469,10 +476,17 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
     [self updateStartupItemState];
 }
 
+- (void)showStatusIcon:(NSNotification *)notification
+{
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self->statusItem setVisible:YES];
+        [self->defaults setBool:NO forKey:@"StatusIconHidden"];
+    });
+}
+
 - (BOOL)applicationShouldHandleReopen:(NSApplication *)theApplication hasVisibleWindows:(BOOL)flag
 {
-    // If the app is invoked again while running, show the status icon
-    [statusItem setVisible:true];
+    [statusItem setVisible:YES];
     [defaults setBool:NO forKey:@"StatusIconHidden"];
     return YES;
 }
