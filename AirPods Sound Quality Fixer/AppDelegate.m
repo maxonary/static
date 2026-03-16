@@ -99,6 +99,12 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
         size,
         &runLoop);
     
+    [[NSDistributedNotificationCenter defaultCenter]
+        addObserver:self
+        selector:@selector(showStatusIcon:)
+        name:@"com.airpods-fixer.showIcon"
+        object:nil];
+
      [ self listDevices ];
     
 }
@@ -469,6 +475,11 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
     [statusItem setVisible:true];
     [defaults setBool:NO forKey:@"StatusIconHidden"];
     return YES;
+}
+
+- (void)showStatusIcon:(NSNotification *)notification {
+    [statusItem setVisible:YES];
+    [defaults setBool:NO forKey:@"StatusIconHidden"];
 }
 
 @end
