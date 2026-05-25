@@ -56,11 +56,14 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
     
     NSLog(@"Loaded device from UserDefaults: %d", forcedInputID);
 
-    NSImage* image = [ NSImage imageNamed : @"airpods-icon" ];
+    // Menu bar icon: SF Symbol microphone, rendered as a template image so it
+    // tints correctly in light and dark menu bars.
+    NSImage* image = [ NSImage imageWithSystemSymbolName : @"mic.fill"
+                                accessibilityDescription : @"Static" ];
     [ image setTemplate : YES ];
 
     statusItem = [ [ NSStatusBar systemStatusBar ] statusItemWithLength : NSVariableStatusItemLength ];
-    statusItem.button.toolTip = @"AirPods Audio Quality & Battery Life Fixer"; // NEW: Use button.toolTip
+    statusItem.button.toolTip = @"Static — locks your microphone input"; // NEW: Use button.toolTip
     statusItem.button.image = image; // NEW: Use button.image
 
     // Restore status icon visibility
@@ -71,7 +74,7 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
     [[NSDistributedNotificationCenter defaultCenter]
         addObserver:self
         selector:@selector(showStatusIcon:)
-        name:@"com.airpods-fixer.showIcon"
+        name:@"com.maxonary.static.showIcon"
         object:nil];
 
     // add listener for detecting when input device is changed
@@ -109,7 +112,7 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
     [[NSDistributedNotificationCenter defaultCenter]
         addObserver:self
         selector:@selector(showStatusIcon:)
-        name:@"com.airpods-fixer.showIcon"
+        name:@"com.maxonary.static.showIcon"
         object:nil];
 
      [ self listDevices ];
@@ -155,7 +158,7 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
         // show forcing
 
         [ menu
-            insertItemWithTitle : @"forcing..."
+            insertItemWithTitle : @"locking..."
             action : NULL
             keyEquivalent : @""
             atIndex : 2 ];
@@ -186,7 +189,7 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
     if ( paused ) [ item setState : NSControlStateValueOn ];
 
     [ menu addItem : [ NSMenuItem separatorItem ] ]; // A thin grey line
-    [ menu addItemWithTitle : @"Forced input:" action : nil keyEquivalent : @"" ];
+    [ menu addItemWithTitle : @"Locked microphone:" action : nil keyEquivalent : @"" ];
     
     UInt32 propertySize;
     
@@ -386,7 +389,7 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
         // show forcing
 
         [ menu
-            insertItemWithTitle : @"forcing..."
+            insertItemWithTitle : @"locking..."
             action : NULL
             keyEquivalent : @""
             atIndex : 2 ];
@@ -403,9 +406,6 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
     [ menu addItem : [ NSMenuItem separatorItem ] ]; // A thin grey line
 
     [ menu addItem : [ NSMenuItem separatorItem ] ]; // A thin grey line
-    [ menu addItemWithTitle : @"Donate if you like the app"
-           action : @selector(support)
-           keyEquivalent : @"" ];
 
     [ menu addItemWithTitle : @"Check for updates"
            action : @selector(update)
@@ -432,14 +432,9 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
     [ NSApp terminate : nil ];
 }
 
-- ( void ) support
-{
-    [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString: @"https://paypal.me/milgra"]];
-}
-
 - ( void ) update
 {
-    [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString: @"http://milgra.com/airpods-sound-quality-fixer.html"]];
+    [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString: @"https://github.com/maxonary/Static/releases"]];
 }
 
 - ( void ) hide
