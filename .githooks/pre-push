@@ -3,7 +3,7 @@
 # Pre-push hook: when pushing a version tag (v*), verify it matches
 # CFBundleShortVersionString in Info.plist.
 
-PLIST="AirPods Sound Quality Fixer/Info.plist"
+PLIST="Static/Info.plist"
 
 while read local_ref local_sha remote_ref remote_sha; do
     # Only check version tags

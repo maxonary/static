@@ -9,7 +9,7 @@ int main(int argc, const char * argv[]) {
             [[NSBundle mainBundle] bundleIdentifier]];
         if (running.count > 1) {
             [[NSDistributedNotificationCenter defaultCenter]
-                postNotificationName:@"com.airpods-fixer.showIcon"
+                postNotificationName:@"com.maxonary.static.showIcon"
                 object:nil
                 userInfo:nil
                 deliverImmediately:YES];

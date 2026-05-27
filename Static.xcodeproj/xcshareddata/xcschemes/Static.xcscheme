@@ -16,9 +16,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "3333F8A1219874D300816A9F"
-               BuildableName = "AirPods Sound Quality Fixer.app"
-               BlueprintName = "AirPods Sound Quality Fixer"
-               ReferencedContainer = "container:AirPods Sound Quality Fixer.xcodeproj">
+               BuildableName = "Static.app"
+               BlueprintName = "Static"
+               ReferencedContainer = "container:Static.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -45,9 +45,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "3333F8A1219874D300816A9F"
-            BuildableName = "AirPods Sound Quality Fixer.app"
-            BlueprintName = "AirPods Sound Quality Fixer"
-            ReferencedContainer = "container:AirPods Sound Quality Fixer.xcodeproj">
+            BuildableName = "Static.app"
+            BlueprintName = "Static"
+            ReferencedContainer = "container:Static.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -62,9 +62,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "3333F8A1219874D300816A9F"
-            BuildableName = "AirPods Sound Quality Fixer.app"
-            BlueprintName = "AirPods Sound Quality Fixer"
-            ReferencedContainer = "container:AirPods Sound Quality Fixer.xcodeproj">
+            BuildableName = "Static.app"
+            BlueprintName = "Static"
+            ReferencedContainer = "container:Static.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

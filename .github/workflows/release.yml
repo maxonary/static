@@ -15,7 +15,7 @@ jobs:
       - name: Verify tag matches Info.plist version
         run: |
           TAG_VERSION="${GITHUB_REF_NAME#v}"
-          PLIST_VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "AirPods Sound Quality Fixer/Info.plist")
+          PLIST_VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "Static/Info.plist")
           if [ "$TAG_VERSION" != "$PLIST_VERSION" ]; then
             echo "::error::Tag version ($TAG_VERSION) does not match Info.plist version ($PLIST_VERSION)"
             exit 1
@@ -47,8 +47,8 @@ jobs:
 
       - name: Build
         run: |
-          xcodebuild -project "AirPods Sound Quality Fixer.xcodeproj" \
-            -scheme "AirPods Sound Quality Fixer" \
+          xcodebuild -project "Static.xcodeproj" \
+            -scheme "Static" \
             -configuration Release \
             -derivedDataPath build \
             CODE_SIGN_STYLE=Manual \
@@ -60,8 +60,8 @@ jobs:
 
       - name: Zip app
         run: |
-          APP_PATH="build/Build/Products/Release/AirPods Sound Quality Fixer.app"
-          ditto -c -k --keepParent "$APP_PATH" "AirPods Sound Quality Fixer.app.zip"
+          APP_PATH="build/Build/Products/Release/Static.app"
+          ditto -c -k --keepParent "$APP_PATH" "Static.app.zip"
 
       - name: Notarize
         env:
@@ -69,7 +69,7 @@ jobs:
           APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
-          SUBMIT_OUTPUT=$(xcrun notarytool submit "AirPods Sound Quality Fixer.app.zip" \
+          SUBMIT_OUTPUT=$(xcrun notarytool submit "Static.app.zip" \
             --apple-id "$APPLE_ID" \
             --password "$APPLE_PASSWORD" \
             --team-id "$APPLE_TEAM_ID" \
@@ -88,9 +88,9 @@ jobs:
       - name: Staple
         run: |
           # Unzip, staple, re-zip (retry up to 5 times for ticket propagation)
-          ditto -x -k "AirPods Sound Quality Fixer.app.zip" staging
+          ditto -x -k "Static.app.zip" staging
           for i in 1 2 3 4 5; do
-            if xcrun stapler staple "staging/AirPods Sound Quality Fixer.app"; then
+            if xcrun stapler staple "staging/Static.app"; then
               echo "Staple succeeded on attempt $i"
               break
             fi
@@ -101,8 +101,8 @@ jobs:
             echo "Staple attempt $i failed, waiting 30s for ticket propagation..."
             sleep 30
           done
-          rm "AirPods Sound Quality Fixer.app.zip"
-          ditto -c -k --keepParent "staging/AirPods Sound Quality Fixer.app" "AirPods Sound Quality Fixer.app.zip"
+          rm "Static.app.zip"
+          ditto -c -k --keepParent "staging/Static.app" "Static.app.zip"
 
       - name: Upload to GitHub Release
         env:
@@ -110,11 +110,11 @@ jobs:
         run: |
           # Upload to existing release, or create one if it doesn't exist
           gh release upload "$GITHUB_REF_NAME" \
-            "AirPods Sound Quality Fixer.app.zip" \
+            "Static.app.zip" \
             --clobber \
           || gh release create "$GITHUB_REF_NAME" \
-            "AirPods Sound Quality Fixer.app.zip" \
-            --title "AirPods Sound Quality Fixer ${GITHUB_REF_NAME}" \
+            "Static.app.zip" \
+            --title "Static ${GITHUB_REF_NAME}" \
             --generate-notes
 
       - name: Cleanup keychain
