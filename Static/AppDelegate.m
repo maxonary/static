@@ -60,7 +60,7 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
     // rendered as a template image so it tints in light and dark menu bars.
     // A color emoji can't be a template image, so the menu bar uses the
     // closest monochrome symbol instead.
-    NSImage* image = [ NSImage imageWithSystemSymbolName : @"music.mic"
+    NSImage* image = [ NSImage imageWithSystemSymbolName : @"mic.fill"
                                 accessibilityDescription : @"Static" ];
     [ image setTemplate : YES ];
 
