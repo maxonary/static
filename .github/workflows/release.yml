@@ -114,7 +114,7 @@ jobs:
             --clobber \
           || gh release create "$GITHUB_REF_NAME" \
             "Static.app.zip" \
-            --title "Static ${GITHUB_REF_NAME}" \
+            --title "static ${GITHUB_REF_NAME}" \
             --generate-notes
 
       - name: Cleanup keychain
