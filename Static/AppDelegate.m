@@ -56,9 +56,11 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
     
     NSLog(@"Loaded device from UserDefaults: %d", forcedInputID);
 
-    // Menu bar icon: SF Symbol microphone, rendered as a template image so it
-    // tints correctly in light and dark menu bars.
-    NSImage* image = [ NSImage imageWithSystemSymbolName : @"mic.fill"
+    // Menu bar icon: studio-microphone SF Symbol (matches the 🎙️ app icon),
+    // rendered as a template image so it tints in light and dark menu bars.
+    // A color emoji can't be a template image, so the menu bar uses the
+    // closest monochrome symbol instead.
+    NSImage* image = [ NSImage imageWithSystemSymbolName : @"music.mic"
                                 accessibilityDescription : @"Static" ];
     [ image setTemplate : YES ];
 
