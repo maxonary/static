@@ -67,9 +67,11 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
     // refreshStatusIcon swaps in mic.slash.fill while the input is muted.
     [ self refreshStatusIcon ];
 
-    // Restore status icon visibility
-    BOOL shouldHideIcon = [defaults boolForKey:@"StatusIconHidden"];
-    [statusItem setVisible:!shouldHideIcon];
+    // An explicit (re)launch always reveals the icon and clears any prior
+    // "hidden" state, so a single relaunch brings it back — even after the app
+    // was quit while hidden. "Hide" only affects the current session.
+    [statusItem setVisible:YES];
+    [defaults setBool:NO forKey:@"StatusIconHidden"];
 
     // Listen for show-icon requests from second-launch instances
     [[NSDistributedNotificationCenter defaultCenter]
@@ -109,12 +111,6 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
         NULL,
         size,
         &runLoop);
-
-    [[NSDistributedNotificationCenter defaultCenter]
-        addObserver:self
-        selector:@selector(showStatusIcon:)
-        name:@"com.maxonary.static.showIcon"
-        object:nil];
 
      [ self listDevices ];
 
