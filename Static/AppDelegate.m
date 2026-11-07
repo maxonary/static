@@ -32,8 +32,12 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
 {
 
     printf( "default input device changed" );
-    // check default input
-    [ ( (__bridge  AppDelegate* ) inClientData ) listDevices ];
+    // CoreAudio delivers notifications on a background queue. listDevices
+    // updates AppKit UI, so dispatch asynchronously to avoid blocking CoreAudio.
+    AppDelegate *delegate = (__bridge AppDelegate *)inClientData;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [delegate listDevices];
+    });
 
     return 0;
 }
