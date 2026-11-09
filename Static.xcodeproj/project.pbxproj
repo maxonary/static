@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+        A00100000000000000000001 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = A00100000000000000000002 /* Sparkle */; };
 		3333F8A7219874D300816A9F /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 3333F8A6219874D300816A9F /* AppDelegate.m */; };
 		3333F8A9219874D600816A9F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3333F8A8219874D600816A9F /* Assets.xcassets */; };
 		3333F8AC219874D600816A9F /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 3333F8AA219874D600816A9F /* MainMenu.xib */; };
@@ -37,6 +38,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+                A00100000000000000000001 /* Sparkle in Frameworks */,
 				4D5897FD2E2A4508007E14EF /* ServiceManagement.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -111,6 +113,7 @@
 			dependencies = (
 			);
 			name = "Static";
+			packageProductDependencies = (A00100000000000000000002 /* Sparkle */,);
 			productName = "Static";
 			productReference = 3333F8A2219874D300816A9F /* Static.app */;
 			productType = "com.apple.product-type.application";
@@ -145,6 +148,7 @@
 			);
 			mainGroup = 3333F899219874D300816A9F;
 			productRefGroup = 3333F8A3219874D300816A9F /* Products */;
+			packageReferences = (A00100000000000000000003 /* Sparkle */,);
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -189,6 +193,21 @@
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+        A00100000000000000000003 /* Sparkle */ = {
+            isa = XCRemoteSwiftPackageReference;
+            repositoryURL = "https://github.com/sparkle-project/Sparkle";
+            requirement = {kind = exactVersion; version = 2.10.1;};
+        };
+/* End XCRemoteSwiftPackageReference section */
+/* Begin XCSwiftPackageProductDependency section */
+        A00100000000000000000002 /* Sparkle */ = {
+            isa = XCSwiftPackageProductDependency;
+            package = A00100000000000000000003 /* Sparkle */;
+            productName = Sparkle;
+        };
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCBuildConfiguration section */
 		3333F8B1219874D600816A9F /* Debug */ = {

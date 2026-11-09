@@ -1,4 +1,5 @@
 #import "AppDelegate.h"
+#import <Sparkle/Sparkle.h>
 #import <CoreAudio/CoreAudio.h>
 
 @interface AppDelegate (Testing)
@@ -32,6 +33,9 @@ int main(void) {
         NSCAssert(probe.refreshCount == 101, @"Lost audio callbacks");
 
         AppDelegate *delegate = [AppDelegate new];
+        SPUStandardUpdaterController *updater = [[SPUStandardUpdaterController alloc]
+            initWithStartingUpdater:NO updaterDelegate:nil userDriverDelegate:nil];
+        [delegate setValue:updater forKey:@"updaterController"];
         // Inspect real menus without changing the user's microphone or preferences.
         [delegate setValue:@YES forKey:@"paused"];
         [delegate setValue:@(UINT32_MAX) forKey:@"forcedInputID"];
@@ -46,6 +50,9 @@ int main(void) {
                 }
                 NSCAssert(count == 1, @"Duplicate/missing menu item: %@", title);
             }
+            NSMenuItem *updateItem = [menu itemWithTitle:@"Check for updates"];
+            NSCAssert(updateItem.target == updater, @"Update menu must target Sparkle");
+            NSCAssert(updateItem.action == @selector(checkForUpdates:), @"Update menu must perform an in-app check");
             NSUInteger volumeCount = 0;
             for (NSMenuItem *item in menu.itemArray) {
                 if ([item.title hasPrefix:@"Input volume:"]) volumeCount++;

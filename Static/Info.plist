@@ -19,9 +19,19 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.10</string>
+	<string>1.11</string>
 	<key>CFBundleVersion</key>
-	<string>10</string>
+	<string>11</string>
+	<key>SUFeedURL</key>
+	<string>https://github.com/maxonary/Static/releases/latest/download/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>dZRUQCOfuR1xKeqdJYevGFq2Bj8K5Jfy2wkPJvlCUqI=</string>
+	<key>SUEnableAutomaticChecks</key>
+	<false/>
+	<key>SUVerifyUpdateBeforeExtraction</key>
+	<true/>
+	<key>SURequireSignedFeed</key>
+	<true/>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.utilities</string>
 	<key>LSMinimumSystemVersion</key>

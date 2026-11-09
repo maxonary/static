@@ -1,10 +1,12 @@
 #import "AppDelegate.h"
 #import <CoreAudio/CoreAudio.h>
 #import <ServiceManagement/ServiceManagement.h>
+#import <Sparkle/Sparkle.h>
 
 
 @interface AppDelegate ( )
 {
+    SPUStandardUpdaterController *updaterController;
     BOOL paused;
     NSMenu* menu;
     NSStatusItem* statusItem;
@@ -47,6 +49,9 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
 
 - ( void ) applicationDidFinishLaunching : ( NSNotification* ) aNotification
 {
+
+    updaterController = [[SPUStandardUpdaterController alloc]
+        initWithStartingUpdater:YES updaterDelegate:nil userDriverDelegate:nil];
 
     defaults = [ NSUserDefaults standardUserDefaults ];
 
@@ -459,9 +464,10 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
 
     [ menu addItem : [ NSMenuItem separatorItem ] ]; // A thin grey line
 
-    [ menu addItemWithTitle : @"Check for updates"
-           action : @selector(update)
-           keyEquivalent : @"" ];
+    NSMenuItem *updateItem = [menu addItemWithTitle:@"Check for updates"
+                                           action:@selector(checkForUpdates:)
+                                    keyEquivalent:@""];
+    updateItem.target = updaterController;
 
     [ menu addItemWithTitle : @"Hide"
            action : @selector(hide)
@@ -487,11 +493,6 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
 - ( void ) terminate
 {
     [ NSApp terminate : nil ];
-}
-
-- ( void ) update
-{
-    [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString: @"https://github.com/maxonary/Static/releases"]];
 }
 
 - ( void ) hide
