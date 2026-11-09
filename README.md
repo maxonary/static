@@ -19,6 +19,7 @@ static keeps your input locked to the device you choose (for example, the built-
 - **Locale-independent built-in mic detection.** static detects the built-in microphone using CoreAudio's transport type property (`kAudioDevicePropertyTransportType == kAudioDeviceTransportTypeBuiltIn`) instead of relying on localized device names, so it works in every language.
 - **Menu bar control.** A microphone icon lives in your menu bar — click it to see and switch input devices, mute, adjust volume, pause locking, or hide the icon.
 - **Tray icon visibility persistence.** static remembers whether its menu bar icon was hidden and restores that state on the next launch. To restore a hidden icon, simply launch the app again.
+- **In-app updates.** “Check for updates” downloads, verifies, installs, and relaunches new versions using Sparkle. Checks are manual; archives and the update feed are signed.
 - **Open at login.** Optionally launch static automatically when your Mac starts.
 
 **Compatibility: Requires macOS 13.0 (Ventura) or later.**
@@ -52,11 +53,24 @@ git config core.hooksPath .githooks
 
 This installs a pre-push hook that verifies version tags (`v*`) match the `CFBundleShortVersionString` in `Info.plist`. To release a new version:
 
-1. Update `CFBundleShortVersionString` in `Static/Info.plist`
-2. Commit and push to main
-3. Tag and push: `git tag v1.8 && git push origin v1.8`
+1. Update `CFBundleShortVersionString` and increment `CFBundleVersion` in `Static/Info.plist`
+2. Commit and merge the PR into master
+3. Tag the merged release commit and push the matching version tag (for example, `git tag v1.11 && git push origin v1.11`).
 
-The CI workflow will build, sign, notarize, and publish a GitHub release automatically.
+The CI workflow archives and exports a Developer ID app, runs regression tests, notarizes and staples the app, and publishes `Static.app.zip` plus a signed `appcast.xml` to the GitHub release. Sparkle reads the feed from the latest release. Every future release must include both assets.
+
+The release workflow requires the existing `APPLE_*` secrets and `SPARKLE_PRIVATE_KEY`, exported with Sparkle's `generate_keys`. Only the public key is checked into `Info.plist`; keep the private key in Keychain and GitHub Actions secrets. Sparkle is pinned to 2.10.1 through Swift Package Manager.
+
+Versions up to 1.10 only open the releases website. Install 1.11 manually once to enable in-app updates.
+
+Build and test locally:
+
+```sh
+xcodebuild -project Static.xcodeproj -scheme Static -configuration Debug -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
+Tests/run.sh
+```
+
+The tests exercise concurrent audio callbacks, repeated menu construction, and Sparkle menu wiring without changing microphone settings. To use another Sparkle distribution, set `SPARKLE_FRAMEWORK_DIR` to the directory containing `Sparkle.framework`.
 
 ## Support & Contributing
 

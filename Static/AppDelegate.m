@@ -1,10 +1,12 @@
 #import "AppDelegate.h"
 #import <CoreAudio/CoreAudio.h>
 #import <ServiceManagement/ServiceManagement.h>
+#import <Sparkle/Sparkle.h>
 
 
 @interface AppDelegate ( )
 {
+    SPUStandardUpdaterController *updaterController;
     BOOL paused;
     NSMenu* menu;
     NSStatusItem* statusItem;
@@ -19,6 +21,8 @@
 
 @property (weak) IBOutlet NSWindow *window;
 
+- (void)listDevices;
+
 @end
 
 
@@ -32,8 +36,8 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
 {
 
     printf( "default input device changed" );
-    // CoreAudio delivers notifications on a background queue. listDevices
-    // updates AppKit UI, so dispatch asynchronously to avoid blocking CoreAudio.
+    // CoreAudio may call back off-main or while we are changing the input.
+    // Always enqueue so menu construction cannot overlap or re-enter itself.
     AppDelegate *delegate = (__bridge AppDelegate *)inClientData;
     dispatch_async(dispatch_get_main_queue(), ^{
         [delegate listDevices];
@@ -45,6 +49,9 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
 
 - ( void ) applicationDidFinishLaunching : ( NSNotification* ) aNotification
 {
+
+    updaterController = [[SPUStandardUpdaterController alloc]
+        initWithStartingUpdater:YES updaterDelegate:nil userDriverDelegate:nil];
 
     defaults = [ NSUserDefaults standardUserDefaults ];
 
@@ -171,6 +178,8 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
 
 - ( void ) listDevices
 {
+    NSAssert([NSThread isMainThread], @"Audio menus must be rebuilt on the main thread");
+    [itemsToIDS removeAllObjects];
 
     NSDictionary *bundleInfo = [ [ NSBundle mainBundle] infoDictionary];
     NSString *versionString = [ NSString stringWithFormat : @"Version %@ (build %@)",
@@ -342,8 +351,6 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
 
         }
 
-        [ statusItem setMenu : menu ];
-
     }
 
     // get current input device
@@ -457,9 +464,10 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
 
     [ menu addItem : [ NSMenuItem separatorItem ] ]; // A thin grey line
 
-    [ menu addItemWithTitle : @"Check for updates"
-           action : @selector(update)
-           keyEquivalent : @"" ];
+    NSMenuItem *updateItem = [menu addItemWithTitle:@"Check for updates"
+                                           action:@selector(checkForUpdates:)
+                                    keyEquivalent:@""];
+    updateItem.target = updaterController;
 
     [ menu addItemWithTitle : @"Hide"
            action : @selector(hide)
@@ -485,11 +493,6 @@ OSStatus callbackFunction(  AudioObjectID inObjectID,
 - ( void ) terminate
 {
     [ NSApp terminate : nil ];
-}
-
-- ( void ) update
-{
-    [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString: @"https://github.com/maxonary/Static/releases"]];
 }
 
 - ( void ) hide

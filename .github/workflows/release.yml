@@ -5,6 +5,9 @@ on:
     tags:
       - "v*"
 
+permissions:
+  contents: write
+
 jobs:
   build-sign-release:
     runs-on: macos-latest
@@ -45,22 +48,32 @@ jobs:
           # Verify
           security find-identity -v "$KEYCHAIN_PATH"
 
-      - name: Build
+      - name: Archive
         run: |
           xcodebuild -project "Static.xcodeproj" \
             -scheme "Static" \
             -configuration Release \
             -derivedDataPath build \
+            -archivePath build/Static.xcarchive \
             CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="Developer ID Application" \
             DEVELOPMENT_TEAM=${{ secrets.APPLE_TEAM_ID }} \
             CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO \
             OTHER_CODE_SIGN_FLAGS="--options=runtime --timestamp" \
-            clean build
+            archive
+
+      - name: Test menu refresh and updater wiring
+        run: Tests/run.sh
+
+      - name: Export Developer ID app
+        run: |
+          xcodebuild -exportArchive -archivePath build/Static.xcarchive \
+            -exportPath build/export -exportOptionsPlist scripts/ExportOptions.plist
+          codesign --verify --deep --strict build/export/Static.app
 
       - name: Zip app
         run: |
-          APP_PATH="build/Build/Products/Release/Static.app"
+          APP_PATH="build/export/Static.app"
           ditto -c -k --keepParent "$APP_PATH" "Static.app.zip"
 
       - name: Notarize
@@ -104,16 +117,29 @@ jobs:
           rm "Static.app.zip"
           ditto -c -k --keepParent "staging/Static.app" "Static.app.zip"
 
+      - name: Generate signed update feed
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: |
+          mkdir updates
+          cp Static.app.zip updates/
+          printf '%s' "$SPARKLE_PRIVATE_KEY" | \
+            build/SourcePackages/artifacts/sparkle/Sparkle/bin/generate_appcast \
+            --ed-key-file - --maximum-deltas 0 \
+            --download-url-prefix "https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/" \
+            updates
+          test -s updates/appcast.xml
+
       - name: Upload to GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Upload to existing release, or create one if it doesn't exist
           gh release upload "$GITHUB_REF_NAME" \
-            "Static.app.zip" \
+            "Static.app.zip" "updates/appcast.xml" \
             --clobber \
           || gh release create "$GITHUB_REF_NAME" \
-            "Static.app.zip" \
+            "Static.app.zip" "updates/appcast.xml" \
             --title "static ${GITHUB_REF_NAME}" \
             --generate-notes
 

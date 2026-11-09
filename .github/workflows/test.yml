@@ -1,0 +1,16 @@
+name: Build and test
+on:
+  pull_request:
+  push:
+    branches: [master]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: xcodebuild -project Static.xcodeproj -scheme Static -configuration Debug -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
+      - name: Test menu refresh and updater wiring
+        run: Tests/run.sh
